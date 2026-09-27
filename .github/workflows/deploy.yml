@@ -1,0 +1,65 @@
+name: Deploy Quartz site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 仅在仓库自身的 push 上部署；PR 不触发（Pages 默认环境不开放给 fork）
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只跑一个部署；不取消进行中的部署，避免半成品上线
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          # 首次运行时自动为仓库启用 Pages（Source = GitHub Actions）
+          enablement: true
+
+      - name: Install dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Build site
+        working-directory: site
+        env:
+          # 子路径部署：https://yabin01.github.io/chan-wiki/
+          # 内容源为仓库根目录的 wiki/（site 只读，不复制）
+          QUARTZ_BASE_URL: yabin01.github.io/chan-wiki
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

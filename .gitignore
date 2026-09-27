@@ -1,0 +1,21 @@
+# ---- WorkBuddy 会话数据（不发布）----
+.workbuddy/
+
+# ---- Quartz 构建产物与依赖 ----
+site/node_modules/
+site/public/
+site/.quartz-cache/
+site/tsconfig.tsbuildinfo
+site/prof/
+
+# ---- 本地预览/临时文件 ----
+_site-preview/
+_lessons_extract.txt
+_verify_names.py
+*.log
+.npm/
+
+# ---- 系统文件 ----
+.DS_Store
+Thumbs.db
+desktop.ini
